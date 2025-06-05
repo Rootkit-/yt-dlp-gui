@@ -6,15 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>996</width>
+    <width>1040</width>
     <height>597</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>yt-dlp-gui</string>
+   <string>YT-DLP GUI</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="assets/icons.qrc">
+   <iconset>
     <normaloff>:/icon/yt-dlp-gui.ico</normaloff>:/icon/yt-dlp-gui.ico</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -23,8 +23,176 @@
      <pointsize>9</pointsize>
     </font>
    </property>
-   <layout class="QGridLayout" name="gridLayout" rowstretch="2,5" columnstretch="1,1,0">
-    <item row="1" column="0" colspan="3">
+   <layout class="QGridLayout" name="gridLayout" rowstretch="2,0,0,0" columnstretch="1,0,0,0">
+    <item row="0" column="0">
+     <widget class="QGroupBox" name="gb_args">
+      <property name="title">
+       <string>Arguments</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_4" columnstretch="0,0,0,0,0,0,0,0">
+       <item row="1" column="1" colspan="4">
+        <widget class="QLineEdit" name="le_path">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="readOnly">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QCheckBox" name="cb_ctrlv">
+         <property name="text">
+          <string>CTRL-V</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="lb_format">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Format</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="3">
+        <widget class="QLabel" name="lb_compress">
+         <property name="text">
+          <string>Compress</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="5">
+        <widget class="QToolButton" name="tb_path">
+         <property name="text">
+          <string>...</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="lb_link">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Link</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="4">
+        <widget class="QComboBox" name="dd_compress">
+         <property name="toolTip">
+          <string>Compress videos after downloading using FFMPEG</string>
+         </property>
+         <item>
+          <property name="text">
+           <string>Original</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Low quality</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Medium quality</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>High quality</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QCheckBox" name="cb_auto">
+         <property name="text">
+          <string>Auto Start</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="2" colspan="2">
+        <widget class="QCheckBox" name="cb_clipboardmonitor">
+         <property name="text">
+          <string>Clipboard Monitor</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="lb_path">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Path</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QComboBox" name="dd_format">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1" colspan="7">
+        <widget class="QLineEdit" name="le_link">
+         <property name="placeholderText">
+          <string>https://www.youtube.com/watch?v=dQw4w9WgXcQ</string>
+         </property>
+         <property name="clearButtonEnabled">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0" colspan="2">
+        <widget class="QCheckBox" name="cb_onedl">
+         <property name="text">
+          <string>Single Download Mode</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="2" colspan="2">
+        <widget class="QCheckBox" name="cb_mkvremux">
+         <property name="text">
+          <string>MKV Remux</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="6">
+        <widget class="QPushButton" name="open_path">
+         <property name="text">
+          <string>Open</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2">
+        <widget class="QPushButton" name="pb_save_preset">
+         <property name="text">
+          <string>Save Preset</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="3" column="0" colspan="4">
      <widget class="QGroupBox" name="gb_status">
       <property name="title">
        <string>Status</string>
@@ -39,10 +207,16 @@
           <property name="text">
            <string>Title</string>
           </property>
+          <property name="textAlignment">
+           <set>AlignCenter</set>
+          </property>
          </column>
          <column>
           <property name="text">
            <string>Format</string>
+          </property>
+          <property name="textAlignment">
+           <set>AlignCenter</set>
           </property>
          </column>
          <column>
@@ -81,76 +255,10 @@
           <property name="text">
            <string>ETA</string>
           </property>
+          <property name="textAlignment">
+           <set>AlignCenter</set>
+          </property>
          </column>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item row="0" column="2">
-     <widget class="QGroupBox" name="gb_controls">
-      <property name="title">
-       <string>Controls</string>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <widget class="QPushButton" name="pb_add">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset resource="assets/icons.qrc">
-           <normaloff>:/buttons/add.png</normaloff>:/buttons/add.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>20</width>
-           <height>20</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="pb_clear">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset resource="assets/icons.qrc">
-           <normaloff>:/buttons/clear.png</normaloff>:/buttons/clear.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>20</width>
-           <height>20</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="pb_download">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Download&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset resource="assets/icons.qrc">
-           <normaloff>:/buttons/download.png</normaloff>:/buttons/download.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>20</width>
-           <height>20</height>
-          </size>
-         </property>
         </widget>
        </item>
       </layout>
@@ -168,35 +276,6 @@
        <bool>false</bool>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
-       <item row="0" column="2" colspan="9">
-        <widget class="QLineEdit" name="le_filename">
-         <property name="placeholderText">
-          <string>%(title)s.%(ext)s</string>
-         </property>
-         <property name="clearButtonEnabled">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="2">
-        <widget class="QComboBox" name="dd_sponsorblock">
-         <item>
-          <property name="text">
-           <string/>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>remove</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>mark</string>
-          </property>
-         </item>
-        </widget>
-       </item>
        <item row="0" column="0">
         <widget class="QLabel" name="lb_filename">
          <property name="text">
@@ -204,31 +283,10 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="lb_cargs">
+       <item row="3" column="3">
+        <widget class="QCheckBox" name="cb_subtitles">
          <property name="text">
-          <string>Custom Args</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="2">
-        <widget class="QCheckBox" name="cb_metadata">
-         <property name="text">
-          <string>Metadata</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>SponserBlock</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="2" colspan="9">
-        <widget class="QLineEdit" name="le_cargs">
-         <property name="clearButtonEnabled">
-          <bool>true</bool>
+          <string>Subtitles</string>
          </property>
         </widget>
        </item>
@@ -240,168 +298,259 @@
         </widget>
        </item>
        <item row="3" column="2">
-        <widget class="QCheckBox" name="cb_clipboardmonitor">
+        <widget class="QCheckBox" name="cb_metadata">
          <property name="text">
-          <string>Clipboard Monitor</string>
+          <string>Metadata</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="3">
-        <widget class="QCheckBox" name="cb_subtitles">
-         <property name="text">
-          <string>Subtitles</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="4" rowspan="3">
-        <spacer name="horizontalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item row="0" column="0">
-     <widget class="QGroupBox" name="gb_args">
-      <property name="title">
-       <string>Arguments</string>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_4" columnstretch="0,0,0,0,0,0,0,0">
-       <item row="3" column="1">
-        <widget class="QComboBox" name="dd_format">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
-         </property>
-         <item>
-          <property name="text">
-           <string>best</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>mp4</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>mp3</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>wav</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>flac</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QCheckBox" name="cb_ctrlv">
-         <property name="text">
-          <string>CTRL-V</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="lb_path">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Path</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="5">
-        <widget class="QToolButton" name="tb_path">
-         <property name="text">
-          <string>...</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QCheckBox" name="cb_auto">
-         <property name="text">
-          <string>Auto</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="lb_format">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Format</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1" colspan="7">
-        <widget class="QLineEdit" name="le_link">
+       <item row="0" column="2" colspan="8">
+        <widget class="QLineEdit" name="le_filename">
          <property name="placeholderText">
-          <string>https://www.youtube.com/watch?v=dQw4w9WgXcQ</string>
+          <string>%(title)s.%(ext)s</string>
          </property>
          <property name="clearButtonEnabled">
           <bool>true</bool>
          </property>
         </widget>
        </item>
-       <item row="1" column="1" colspan="4">
-        <widget class="QLineEdit" name="le_path">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="readOnly">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="lb_link">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
-         </property>
+       <item row="3" column="4">
+        <widget class="QCheckBox" name="cb_download_srt">
          <property name="text">
-          <string>Link</string>
+          <string>Export subtitles</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="5" rowspan="3">
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
+       <item row="1" column="0">
+        <widget class="QLabel" name="lb_cargs">
+         <property name="text">
+          <string>Custom Args</string>
          </property>
-         <property name="sizeHint" stdset="0">
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>SponsorBlock</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2" colspan="8">
+        <widget class="QLineEdit" name="le_cargs">
+         <property name="clearButtonEnabled">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <layout class="QVBoxLayout" name="vl_sponsorblock">
+         <item>
+          <widget class="QRadioButton" name="rb_sb_off">
+           <property name="text">
+            <string>off</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="rb_sb_mark">
+           <property name="text">
+            <string>mark</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="rb_sb_rm">
+           <property name="text">
+            <string>remove</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="2" column="3" colspan="2">
+        <widget class="QListWidget" name="lw_sponsorblock">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
           <size>
-           <width>219</width>
-           <height>20</height>
+           <width>120</width>
+           <height>80</height>
           </size>
          </property>
-        </spacer>
+         <property name="autoFillBackground">
+          <bool>false</bool>
+         </property>
+         <item>
+          <property name="text">
+           <string>All</string>
+          </property>
+          <property name="textAlignment">
+           <set>AlignCenter</set>
+          </property>
+          <property name="checkState">
+           <enum>PartiallyChecked</enum>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Sponsor</string>
+          </property>
+          <property name="checkState">
+           <enum>Checked</enum>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Interaction</string>
+          </property>
+          <property name="checkState">
+           <enum>Unchecked</enum>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Self Promo</string>
+          </property>
+          <property name="checkState">
+           <enum>Unchecked</enum>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Intro</string>
+          </property>
+          <property name="checkState">
+           <enum>Unchecked</enum>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Endcards</string>
+          </property>
+          <property name="checkState">
+           <enum>Unchecked</enum>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Preview</string>
+          </property>
+          <property name="checkState">
+           <enum>Unchecked</enum>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Filler</string>
+          </property>
+          <property name="checkState">
+           <enum>Unchecked</enum>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Non-Music</string>
+          </property>
+          <property name="checkState">
+           <enum>Checked</enum>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="1" column="0" rowspan="2" colspan="2">
+     <widget class="QGroupBox" name="gb_controls">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+        <horstretch>1</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="title">
+       <string/>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QPushButton" name="pb_add">
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
+           </property>
+           <property name="toolTip">
+            <string>Add to queue</string>
+           </property>
+           <property name="text">
+            <string>Add to queue</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/buttons/add.png</normaloff>:/buttons/add.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pb_download">
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
+           </property>
+           <property name="toolTip">
+            <string>Start the download for all queued items</string>
+           </property>
+           <property name="text">
+            <string>Download queue</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/buttons/download.png</normaloff>:/buttons/download.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pb_clear">
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
+           </property>
+           <property name="toolTip">
+            <string>Clear download queue</string>
+           </property>
+           <property name="text">
+            <string>Clear queue</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/buttons/clear.png</normaloff>:/buttons/clear.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
      </widget>
@@ -412,13 +561,10 @@
  </widget>
  <tabstops>
   <tabstop>le_path</tabstop>
-  <tabstop>pb_add</tabstop>
-  <tabstop>pb_clear</tabstop>
-  <tabstop>pb_download</tabstop>
   <tabstop>tw</tabstop>
  </tabstops>
  <resources>
-  <include location="assets/icons.qrc"/>
+  <include location="ui/assets/icons.qrc"/>
  </resources>
  <connections/>
 </ui>

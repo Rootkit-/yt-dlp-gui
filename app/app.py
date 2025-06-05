@@ -1,9 +1,9 @@
-"""
-I modded a lot. I believe I added # to all mods.
-"""
-import logging, threading, os, sys, shutil, time, subprocess, requests, version
-import win32event, win32api, concurrent.futures
+
+import logging, os, sys, shutil, subprocess, version
+import win32event, win32api
 import pywinctl as gw
+import re
+import tldextract
 
 from winerror import ERROR_ALREADY_EXISTS
 from utils import *
@@ -29,6 +29,9 @@ logging.basicConfig(
     ],
 )
 
+BIN = "bin"
+
+
 class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
@@ -45,6 +48,12 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         if not self.cb_ctrlv.isChecked():
             self.le_link.setFocus()
         #end Select input for ctrl v
+
+        self.rb_sb_off.clicked.connect(self.update_sponsorblock_options)
+        self.rb_sb_mark.clicked.connect(self.update_sponsorblock_options)
+        self.rb_sb_rm.clicked.connect(self.update_sponsorblock_options)
+        self.lw_sponsorblock.itemChanged.connect(self.handle_sponsorblock_item_change)
+        self.update_sponsorblock_options()
 
         self.statusBar.showMessage(f"Version {version.__version__} -- {version.__subversion__} ")
         self.form = DownloadWindow()
@@ -68,12 +77,33 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.installEventFilter(self)
         self.setup_timer()
         self.downloading = False
+        
+        self.supported_sites = ''
         #end clipboard monitor & Keyboard input event
         """
         self.icon_folder = self.resources_path()
         #self.tray_ico = QPixmap(self.icon_folder+"\yt-dlp-gui.ico")
         #self.setup_tray()
         """
+    
+    
+    def valid_link(self, link: str):
+        pattern = r'https?://(?:www\.)?\S+'
+        if not re.match(pattern, link, re.IGNORECASE): return False
+            
+        if self.supported_sites == '':
+            try:
+                with open(os.path.join(BIN, 'supported-sites.txt') ,'r', encoding='utf-8') as f:
+                    self.supported_sites = f.read()
+            except: logger.debug(f'could not open supported sites file')
+        
+        if self.supported_sites == '': return True
+        
+        domain = tldextract.extract(link).domain
+        logger.debug(f'checking {domain} ...')
+        return domain.lower() in self.supported_sites
+            
+
 
     #Clipboard check
     def setup_timer(self):
@@ -87,15 +117,27 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.current_link = self.clipboard.text()
         if self.current_link == self.old_link:
             return
-        if "https://www.youtube.com/watch" in self.current_link:
+        if self.valid_link(self.current_link):
             logger.info(f"Copy Link `{self.current_link}`")
             self.le_link.paste()
             self.button_add()
         self.old_link = self.current_link
-    #endclipboard check
+
     def remove_item(self, item, column):
-        modifiers = qtw.QApplication.keyboardModifiers()      
-        if not self.isme or (self.isme and modifiers == qtc.Qt.ShiftModifier):
+        is_error = item.text(4) == 'ERROR'
+        action = None
+        
+        if is_error:
+            msg_box = qtw.QMessageBox(self)
+            msg_box.setText(f"Would you like to remove {item.text(0)} ?")
+            msg_box.setWindowTitle("Application Message")
+            msg_box.setStandardButtons(qtw.QMessageBox.Yes | qtw.QMessageBox.No)
+            msg_box.addButton("Restart", qtw.QMessageBox.ActionRole)
+            ret = msg_box.exec_()
+            if ret == qtw.QMessageBox.Yes: action = 'remove'
+            if ret == 2: action = 'restart'
+        
+        else:
             ret = qtw.QMessageBox.question(
                 self,
                 "Application Message",
@@ -103,21 +145,24 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 qtw.QMessageBox.Yes | qtw.QMessageBox.No,
                 qtw.QMessageBox.No,
             )
-            if ret == qtw.QMessageBox.Yes:
-                if self.to_dl.get(item.id):
-                    logger.debug(f"Removing queued download ({item.id}): {item.text(0)}")
-                    self.to_dl.pop(item.id)
-                elif worker := self.worker.get(item.id):
-                    logger.info(
-                        f"Stopping and removing download ({item.id}): {item.text(0)}"
-                    )
-                    worker.stop()
-                    self.tw.takeTopLevelItem(self.tw.indexOfTopLevelItem(item))
-        else:
-            if "Finished" in item.text(4):
-                paths = os.path.normpath(item.text(0))
-                arg = ['W:\\Down\\Rar\\Tools\\PortablePot\\PotPlayerPortable\\PotPlayerPortable.exe', paths,'/insert']
-                subprocess.Popen(arg)
+            if ret == qtw.QMessageBox.Yes: action = 'remove'
+    
+        if action == 'remove':
+            if self.to_dl.get(item.id):
+                logger.debug(f"Removing queued download ({item.id}): {item.text(0)}")
+                self.to_dl.pop(item.id)
+                
+            elif worker := self.worker.get(item.id):
+                logger.info(f"Stopping download ({item.id}): {item.text(0)}")
+                worker.stop()
+                self.worker.pop(item.id, None)
+            self.tw.takeTopLevelItem(self.tw.indexOfTopLevelItem(item))
+            
+        if action == 'restart':
+            if worker := self.worker.get(item.id):
+                logger.info(f"Restarting item ({item.id}): {item.text(0)}")
+                worker.restart()
+
 
     def button_path(self):
         path = qtw.QFileDialog.getExistingDirectory(
@@ -126,6 +171,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
         if path:
             self.le_path.setText(path)
+        return path
 
     def clip_change(self):
         self.old_link = self.clipboard.text()
@@ -139,15 +185,13 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         if fmt in ("mp3", "flac"):
             self.cb_thumbnail.setEnabled(True)
             self.cb_mkvremux.setEnabled(False)
-            self.cb_subtitle.setEnabled(False)
-            self.cb_autosubtitles.setEnabled(False)
-            self.cb_subtitlesembed.setEnabled(False)
+            self.cb_subtitles.setEnabled(False)
+            self.cb_download_srt.setEnabled(False)
         else:
             self.cb_thumbnail.setEnabled(True)
             self.cb_mkvremux.setEnabled(False)
-            self.cb_subtitle.setEnabled(False)
-            self.cb_autosubtitles.setEnabled(False)
-            self.cb_subtitlesembed.setEnabled(True)
+            self.cb_subtitles.setEnabled(False)
+            self.cb_download_srt.setEnabled(True)
     def button_open(self):
         path = self.le_path.text()
         paths = os.path.normpath(path)
@@ -163,9 +207,11 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         #end auto paste
         link = self.le_link.text()
         path = self.le_path.text()
+        if not path and self.preset.get("default") is True:
+            path = self.button_path()
         filename = self.le_filename.text()
-        if not "youtube" in link and not "youtu.be" in link:
-           return logger.info(f"Item {link} youtube not found")
+        if not self.valid_link(link):
+           return logger.info(f"Item {link}: URL not found")
         if "&list" in link:
             ret = qtw.QMessageBox.question(
                 self,
@@ -199,6 +245,16 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         [item.setTextAlignment(i, qtc.Qt.AlignCenter) for i in range(1, 6)]
         item.id = self.index
         self.le_link.clear()
+        
+        sponsorblock = None
+        if self.rb_sb_mark.isChecked(): sponsorblock = 'mark'
+        if self.rb_sb_rm.isChecked(): sponsorblock = 'remove'
+        sponsorblock_categories = []
+        for i in range(1, self.lw_sponsorblock.count()):
+            if self.lw_sponsorblock.item(i).checkState() == qtc.Qt.CheckState.Checked:
+                sponsorblock_categories.append(self.lw_sponsorblock.item(i).text())
+        
+        compress_level = self.dd_compress.currentText()
 
         self.to_dl[self.index] = Worker(
             item,
@@ -208,14 +264,14 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             filename,
             self.fmt,
             self.le_cargs.text(),
-            self.dd_sponsorblock.currentText(),
+            sponsorblock,
+            sponsorblock_categories,
             self.cb_metadata.isChecked(),
             self.cb_thumbnail.isChecked(),
             self.cb_subtitles.isChecked(),
-            self.cb_autosubtitles.isChecked(),
-            self.cb_subtitlesembed.isChecked(),
+            self.cb_download_srt.isChecked(),
             self.cb_mkvremux.isChecked(),
-            self.isme,
+            compress_level,
         )
 
         logger.info(f"Queue download ({item.id}) added: {self.to_dl[self.index]}")
@@ -269,6 +325,33 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.downloading = False
             pass
 
+    def update_sponsorblock_options(self):
+        enabled = not self.rb_sb_off.isChecked()
+        self.lw_sponsorblock.setEnabled(enabled)
+
+
+    def handle_sponsorblock_item_change(self, item=None):
+        if item is None or item != self.lw_sponsorblock.item(0):
+            all_item = self.lw_sponsorblock.item(0)
+            checked_count = sum(self.lw_sponsorblock.item(i).checkState() == qtc.Qt.CheckState.Checked for i in range(1, self.lw_sponsorblock.count()))
+            
+            if checked_count == self.lw_sponsorblock.count() - 1:
+                all_item.setCheckState(qtc.Qt.CheckState.Checked)
+            elif checked_count == 0:
+                all_item.setCheckState(qtc.Qt.CheckState.Unchecked)
+            else:
+                all_item.setCheckState(qtc.Qt.CheckState.PartiallyChecked)
+        else:
+            # The "All" item was clicked
+            all_item = self.lw_sponsorblock.item(0)
+            if all_item.checkState() == qtc.Qt.CheckState.Checked:
+                for i in range(1, self.lw_sponsorblock.count()):
+                    self.lw_sponsorblock.item(i).setCheckState(qtc.Qt.CheckState.Checked)
+            elif all_item.checkState() == qtc.Qt.CheckState.Unchecked:
+                for i in range(1, self.lw_sponsorblock.count()):
+                    self.lw_sponsorblock.item(i).setCheckState(qtc.Qt.CheckState.Unchecked)
+
+
     def button_download(self):
         if self.cb_onedl.isChecked():
             for k, v in self.to_dl.items():
@@ -314,7 +397,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         save_json("config.json", self.config)
         event.accept()
 
-    #ctrlv and enter
+
     def eventFilter(self, obj, event):
         if event.type() == qtc.QEvent.KeyPress:
             if event.key() == qtc.Qt.Key_V and event.modifiers() == qtc.Qt.ControlModifier and self.cb_ctrlv.isChecked():
@@ -323,31 +406,12 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             if event.key() == qtc.Qt.Key_Return and self.le_link.hasFocus():
                 self.button_add()
         return super().eventFilter(obj, event)
-    #end ctrlv and enter
-    #onefile
-    def resource_path(self):
-        try:
-            base_path = sys._MEIPASS
-        except AttributeError:
-            base_path = os.path.abspath("./config")
-        return base_path
-    #End onefile
-    def load_config(self):
-        #onefile
-        if not os.path.isfile("config.json"):
-            shutil.copy(os.path.join(self.resource_path(), "config.json"), "config.json")
-        #end onefile
-        config_path = "config.json"
 
+
+    def load_config(self):
+        
         try:
-            self.config = load_json(config_path)
-        except FileNotFoundError:
-            qtw.QMessageBox.critical(
-                self,
-                "Application Message",
-                f"Config file not found at: {config_path}",
-            )
-            qtw.QApplication.exit()
+            self.config = load_json("config.json")
         except json.decoder.JSONDecodeError:
             qtw.QMessageBox.critical(
                 self,
@@ -362,25 +426,39 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.dd_format.setCurrentIndex(self.config["format"])
         self.load_preset(self.dd_format.currentText())
 
+
     def save_preset(self):
         if "path" in self.preset:
             self.preset["path"] = self.le_path.text()
-        if "sponsorblock" in self.preset:
-            self.preset["sponsorblock"] = self.dd_sponsorblock.currentIndex()
+            
+        if self.rb_sb_off.isChecked():
+            self.preset["sponsorblock"] = "off"
+        elif self.rb_sb_mark.isChecked():
+            self.preset["sponsorblock"] = "mark"
+        elif self.rb_sb_rm.isChecked():
+            self.preset["sponsorblock"] = "remove"
+            
+        sponsorblock_categories = []
+        for i in range(1, self.lw_sponsorblock.count()):
+            if self.lw_sponsorblock.item(i).checkState() == qtc.Qt.CheckState.Checked:
+                sponsorblock_categories.append(self.lw_sponsorblock.item(i).text())
+        self.preset["sponsorblock_categories"] = sponsorblock_categories
+
         if "metadata" in self.preset:
             self.preset["metadata"] = self.cb_metadata.isChecked()
         if "thumbnail" in self.preset:
             self.preset["thumbnail"] = self.cb_thumbnail.isChecked()
         if "subtitles" in self.preset:
             self.preset["subtitles"] = self.cb_subtitles.isChecked()
-        if "autosubtitles" in self.preset:
-            self.preset["autosubtitles"] = self.cb_autosubtitles.isChecked()    
-        if "embedsubs" in self.preset:
-            self.preset["embedsubs"] = self.cb_subtitlesembed.isChecked()
+        if "download_srt" in self.preset:
+            self.preset["download_srt"] = self.cb_download_srt.isChecked()
         if "filename" in self.preset:
             self.preset["filename"] = self.le_filename.text()
         if "extra_args" in self.preset:
             self.preset["extra_args"] = self.le_cargs.text()
+        if "compress" in self.preset:
+            self.preset["compress"] = self.dd_compress.currentText()
+
         save_json("config.json", self.config)
 
         qtw.QMessageBox.information(
@@ -388,23 +466,20 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 "Application Message",
                 f"Preset for {self.fmt} saved successfully.",
             )
-    
+
+
     def load_preset(self, fmt):
         if not (preset := self.config["presets"].get(fmt)):
             self.le_path.clear()
             self.tb_path.setEnabled(False)
-            self.dd_sponsorblock.setCurrentIndex(-1)
-            self.dd_sponsorblock.setEnabled(False)
             self.cb_metadata.setChecked(False)
             self.cb_metadata.setEnabled(False)
             self.cb_thumbnail.setChecked(False)
             self.cb_thumbnail.setEnabled(False)
             self.cb_subtitles.setChecked(False)
             self.cb_subtitles.setEnabled(False)
-            self.cb_autosubtitles.setChecked(False)
-            self.cb_autosubtitles.setEnabled(False)
-            self.cb_subtitlesembed.setChecked(False)
-            self.cb_subtitlesembed.setEnabled(False)
+            self.cb_download_srt.setChecked(False)
+            self.cb_download_srt.setEnabled(False)
             self.cb_mkvremux.setChecked(False)
             self.cb_mkvremux.setEnabled(False)
             self.le_cargs.clear()
@@ -443,11 +518,24 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.tb_path.setEnabled(False)
 
         if "sponsorblock" in preset:
-            self.dd_sponsorblock.setEnabled(True)
-            self.dd_sponsorblock.setCurrentIndex(preset["sponsorblock"])
+            if preset["sponsorblock"] == "off":
+                self.rb_sb_off.setChecked(True)
+            elif preset["sponsorblock"] == "mark":
+                self.rb_sb_mark.setChecked(True)
+            elif preset["sponsorblock"] == "remove":
+                self.rb_sb_rm.setChecked(True)
+            
+            self.update_sponsorblock_options()
+
+            # Load sponsorblock categories
+            if "sponsorblock_categories" in preset:
+                for i in range(1, self.lw_sponsorblock.count()):
+                    item = self.lw_sponsorblock.item(i)
+                    item.setCheckState(qtc.Qt.CheckState.Checked if item.text() in preset["sponsorblock_categories"] else qtc.Qt.CheckState.Unchecked)
+                self.handle_sponsorblock_item_change()
         else:
-            self.dd_sponsorblock.setCurrentIndex(-1)
-            self.dd_sponsorblock.setEnabled(False)
+            self.rb_sb_off.setChecked(True)
+            self.update_sponsorblock_options()
 
         if "metadata" in preset:
             self.cb_metadata.setEnabled(True)
@@ -470,20 +558,13 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.cb_subtitles.setChecked(False)
             self.cb_subtitles.setEnabled(False)
 
-        if "autosubtitles" in preset:
-            self.cb_autosubtitles.setEnabled(True)
-            self.cb_autosubtitles.setChecked(preset["autosubtitles"])
+        if "download_srt" in preset:
+            self.cb_download_srt.setEnabled(True)
+            self.cb_download_srt.setChecked(preset["download_srt"])
         else:
-            self.cb_autosubtitles.setChecked(False)
-            self.cb_autosubtitles.setEnabled(False)
-
-        if "embedsubs" in preset:
-            self.cb_subtitlesembed.setEnabled(True)
-            self.cb_subtitlesembed.setChecked(preset["embedsubs"])
-        else:
-            self.cb_subtitlesembed.setChecked(False)
-            self.cb_subtitlesembed.setEnabled(False)  
-
+            self.cb_download_srt.setChecked(False)
+            self.cb_download_srt.setEnabled(False)
+        
         if "mp3" in fmt:
             self.cb_mkvremux.setEnabled(False)
             self.cb_mkvremux.setChecked(False)
@@ -508,6 +589,11 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         else:
             self.le_filename.clear()
             self.le_filename.setEnabled(False)
+        
+        if "compress" in preset:
+            self.dd_compress.setCurrentText(preset["compress"])
+        else:
+            self.dd_compress.setCurrentIndex(0)
 
         if "ctrlv" in config:
             self.cb_ctrlv.setEnabled(True)
@@ -530,9 +616,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.cb_clipboardmonitor.setChecked(False)
             self.cb_clipboardmonitor.setEnabled(False)
 
-        if "isme" in config:
-            self.isme = config["isme"]
-
         if "onedl" in config:
             self.cb_onedl.setEnabled(True)
             self.cb_onedl.setChecked(config["onedl"]) 
@@ -543,9 +626,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.fmt = fmt
 
 if __name__ == "__main__":
-    mutex = win32event.CreateMutex(None, False, 'yt-dlp-gui')
+    mutex = win32event.CreateMutex(None, False, 'YT-DLP GUI')
     last_error = win32api.GetLastError()
-    win = gw.getWindowsWithTitle('yt-dlp-gui')
+    win = gw.getWindowsWithTitle('YT-DLP GUI')
     if win:
         win[0].minimize()
         win[0].restore()

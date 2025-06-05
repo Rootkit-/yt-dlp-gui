@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'app/version.py'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -31,7 +32,7 @@ jobs:
       - name: Build application
         working-directory: ./app
         run: |
-          pyinstaller --onefile --clean --name=yt-dlp-gui -y app.py --icon ./ui/assets/yt-dlp-gui.ico --noconsole --add-data "./config/config.json:." --exclude-module "**/*.git" --exclude-module "**/__cache__" --exclude-module "**/dist" --exclude-module "**/build"
+          pyinstaller --onefile --clean --name=yt-dlp-gui -y app.py --icon ./ui/assets/yt-dlp-gui.ico --noconsole --exclude-module "**/*.git" --exclude-module "**/__cache__" --exclude-module "**/dist" --exclude-module "**/build"
           Compress-Archive -Path dist/* -DestinationPath yt-dlp-gui-win64.zip
 
       - name: Get version

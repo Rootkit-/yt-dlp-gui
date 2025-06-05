@@ -132,6 +132,7 @@ dmypy.json
 bin/
 
 app/config.json
+config.json
 app/conf.json
 app/static/
 ignore/
